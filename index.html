@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Taxi Coin (TC$) — Banco Fictício</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#09111d;--panel:#0e172a;--muted:#94a3b8;--text:#e5e7eb;--brand:#d4af37;--accent:#22c55e;--danger:#ef4444}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#0b1220,#0e172a);color:var(--text)}
+    .wrap{max-width:1000px;margin:0 auto;padding:20px}
+    .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.35);padding:18px}
+    h1{margin:0 0 6px;font-size:28px;color:var(--brand)}
+    .muted{color:var(--muted);font-size:14px}
+    .lang{position:fixed;top:10px;right:10px;display:flex;gap:8px;z-index:10}
+    .lang button{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#0b1020;color:var(--text);cursor:pointer}
+    input,button{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:#0b1020;color:var(--text);outline:none}
+    button{cursor:pointer;font-weight:700;background:linear-gradient(180deg,#22c55e,#16a34a);border:none}
+    button.secondary{background:#0b1020}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .mt{margin-top:12px}.mt2{margin-top:20px}
+    .tabs{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
+    .tab{padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#0b1020;cursor:pointer}
+    .tab.active{background:linear-gradient(180deg,#1f2937,#0b1020)}
+    .flex{display:flex;gap:8px;align-items:center}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-size:12px;color:var(--muted)}
+    .right{margin-left:auto}
+    .hidden{display:none}
+    table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+    th,td{border-bottom:1px dashed rgba(255,255,255,.14);padding:8px;text-align:left}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand img{height:36px;border-radius:6px}
+    .err{color:#fff;background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);padding:8px 10px;border-radius:10px;margin-top:10px}
+    .ok{color:#022c22;background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);padding:8px 10px;border-radius:10px;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="lang">
+    <button id="btn-pt">PT-BR</button>
+    <button id="btn-es">ES-AR</button>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="brand">
+        <h1>Taxi Coin (TC$)</h1>
+      </div>
+      <div class="muted" data-i="subtitle">Banco digital fictício com saldo e transferências</div>
+
+      <div id="auth-view" class="mt2">
+        <div class="row">
+          <div>
+            <label data-i="login">Login</label>
+            <input id="login" placeholder="usuario123" autocomplete="username"/>
+          </div>
+          <div>
+            <label data-i="password">Senha</label>
+            <input id="senha" type="password" placeholder="••••••••" autocomplete="current-password"/>
+          </div>
+        </div>
+        <div class="row mt">
+          <button id="btn-login" data-i="btnLogin">Entrar</button>
+          <button id="btn-create" class="secondary" data-i="btnCreate">Criar conta</button>
+        </div>
+        <div id="auth-msg" class="hidden"></div>
+      </div>
+
+      <div id="app-view" class="mt2 hidden">
+        <div class="flex">
+          <div class="pill" id="user-pill">—</div>
+          <div class="pill right"><span data-i="balance">Saldo</span>: <b id="saldo">0</b> TC$</div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active" data-tab="dashboard" data-i="tabDashboard">Painel</div>
+          <div class="tab" data-tab="transfer" data-i="tabTransfer">Transferir ao usuario</div>
+          <div class="tab" data-tab="receive" data-i="tabReceive">Receber (QR)</div>
+          <div class="tab" data-tab="history" data-i="tabHistory">Transações</div>
+        </div>
+
+        <div id="tab-dashboard">
+          <div class="row">
+            <button id="btn-refresh" class="secondary" data-i="btnRefresh">Atualizar saldo</button>
+            <button id="btn-logout" class="secondary" data-i="btnLogout">Sair</button>
+          </div>
+          <div id="dash-msg" class="hidden"></div>
+          <div class="mt muted">TC$ é moeda fictícia para demonstração.</div>
+        </div>
+
+        <div id="tab-transfer" class="hidden">
+          <div class="row">
+            <div>
+              <label data-i="toKey">Enviar para (chave)</label>
+              <input id="para_chave" placeholder="email do recebedor"/>
+            </div>
+            <div>
+              <label data-i="amount">Valor (TC$)</label>
+              <input id="valor_transfer" type="number" min="0" step="0.01"/>
+            </div>
+          </div>
+          <div class="row mt">
+            <button id="btn-transfer" data-i="btnDoTransfer">Transferir ao usuario</button>
+            <button id="btn-open-qr" class="secondary" data-i="btnScanQR">Ler QR</button>
+          </div>
+          <div id="qr-reader" class="mt hidden"></div>
+          <pre id="qr-result" class="mt hidden"></pre>
+          <div id="transfer-msg" class="hidden"></div>
+        </div>
+
+        <div id="tab-receive" class="hidden">
+          <div class="row">
+            <div>
+              <label data-i="receiveAmount">Valor opcional (TC$)</label>
+              <input id="valor_qr" type="number" min="0" step="0.01"/>
+            </div>
+            <div>
+              <label data-i="qrPreview">Prévia do QR</label>
+              <img id="qr-img" alt="QR" style="width:128px;height:128px;border-radius:8px;border:1px solid rgba(255,255,255,.15)"/>
+            </div>
+          </div>
+          <button id="btn-gen-qr" class="mt" data-i="btnGenQR">Gerar QR de recebimento</button>
+          <div id="receive-msg" class="hidden"></div>
+        </div>
+
+        <div id="tab-history" class="hidden">
+          <div class="row">
+            <div>
+              <label data-i="page">Página</label>
+              <input id="hist-page" type="number" value="1" min="1"/>
+            </div>
+            <div>
+              <label data-i="pageSize">Itens por página</label>
+              <input id="hist-size" type="number" value="10" min="1"/>
+            </div>
+          </div>
+          <button id="btn-load-history" class="mt" data-i="btnLoadHistory">Carregar</button>
+          <table id="hist-table" class="hidden">
+            <thead>
+              <tr>
+                <th>tx_id</th>
+                <th data-i="date">Data</th>
+                <th>de</th>
+                <th>para</th>
+                <th data-i="type">Tipo</th>
+                <th data-i="desc">Descrição</th>
+                <th data-i="value">Valor</th>
+                <th data-i="status">Status</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div id="hist-msg" class="hidden"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script>
+  const API_BASE = "https://script.google.com/macros/s/AKfycbzDX5sbPXjMvDlj77uTD4oMxEQ_J1fNmY8-5owRw63hacd7IvOhyD8mPr1shp8c8UUy1g/exec";
+
+  const I18N = {
+    pt: { subtitle:"Banco digital fictício com saldo e transferências", login:"Login", password:"Senha", btnLogin:"Entrar", btnCreate:"Criar conta",
+      balance:"Saldo", tabDashboard:"Painel", tabTransfer:"Transferir ao usuario", tabReceive:"Receber (QR)", tabHistory:"Transações",
+      btnRefresh:"Atualizar saldo", btnLogout:"Sair", toKey:"Enviar para (chave)", amount:"Valor (TC$)", btnDoTransfer:"Transferir ao usuario",
+      btnScanQR:"Ler QR", receiveAmount:"Valor opcional (TC$)", qrPreview:"Prévia do QR", btnGenQR:"Gerar QR de recebimento",
+      page:"Página", pageSize:"Itens por página", btnLoadHistory:"Carregar", date:"Data", type:"Tipo", desc:"Descrição", value:"Valor", status:"Status" },
+    es: { subtitle:"Banco digital ficticio con saldo y transferencias", login:"Usuario", password:"Contraseña", btnLogin:"Ingresar", btnCreate:"Crear cuenta",
+      balance:"Saldo", tabDashboard:"Panel", tabTransfer:"Transferir al usuario", tabReceive:"Recibir (QR)", tabHistory:"Transacciones",
+      btnRefresh:"Actualizar saldo", btnLogout:"Salir", toKey:"Enviar a (clave)", amount:"Importe (TC$)", btnDoTransfer:"Transferir al usuario",
+      btnScanQR:"Leer QR", receiveAmount:"Importe opcional (TC$)", qrPreview:"Vista previa del QR", btnGenQR:"Generar QR de cobro",
+      page:"Página", pageSize:"Ítems por página", btnLoadHistory:"Cargar", date:"Fecha", type:"Tipo", desc:"Descripción", value:"Importe", status:"Estado" }
+  };
+  let lang = localStorage.getItem('tc_lang') || 'pt';
+  function applyLang(){ document.querySelectorAll('[data-i]').forEach(el => { const k=el.getAttribute('data-i'); el.textContent = I18N[lang][k] || el.textContent; }); }
+  document.getElementById('btn-pt').onclick = ()=>{ lang='pt'; localStorage.setItem('tc_lang','pt'); applyLang(); };
+  document.getElementById('btn-es').onclick = ()=>{ lang='es'; localStorage.setItem('tc_lang','es'); applyLang(); };
+  applyLang();
+
+  let STATE = { token: localStorage.getItem('tc_token') || null, cliente_id: localStorage.getItem('tc_cliente') || null, nome: localStorage.getItem('tc_nome') || null };
+  const $ = (s)=>document.querySelector(s);
+  const show = (el)=>el.classList.remove('hidden');
+  const hide = (el)=>el.classList.add('hidden');
+  const ok = (el,msg)=>{ el.className='ok'; el.textContent=msg; show(el); };
+  const err= (el,msg)=>{ el.className='err'; el.textContent=msg; show(el); };
+
+  async function apiPost(action, body={}, auth=true){
+    const payload = { ...body, action };
+    if (auth && STATE.token) payload.token = STATE.token;
+    const res = await fetch(API_BASE + '?action='+encodeURIComponent(action), {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  }
+  async function apiGet(action, params={}, auth=true){
+    const sp = new URLSearchParams({action, ...params});
+    if (auth && STATE.token) sp.set('token', STATE.token);
+    const res = await fetch(API_BASE + '?' + sp.toString(), { method:'GET' });
+    return res.json();
+  }
+
+  function setAuthUI(){
+    if (STATE.token){
+      hide($('#auth-view')); show($('#app-view'));
+      $('#user-pill').textContent = (STATE.nome||'') + ' ('+(STATE.cliente_id||'')+')';
+      loadSaldo();
+    }else{ show($('#auth-view')); hide($('#app-view')); }
+  }
+
+  $('#btn-login').onclick = async ()=>{
+    const login = $('#login').value.trim();
+    const senha = $('#senha').value;
+    const msg = $('#auth-msg');
+    hide(msg);
+    if (!login || !senha) return err(msg, lang==='pt'?'Informe login e senha.':'Indique usuario y contraseña.');
+    const r = await apiPost('login', {login, senha}, false);
+    if (!r.ok) return err(msg, r.error || (lang==='pt'?'Erro no login.':'Error en el login.'));
+    STATE.token = r.token; STATE.cliente_id = r.cliente_id; STATE.nome = r.nome;
+    localStorage.setItem('tc_token', STATE.token);
+    localStorage.setItem('tc_cliente', STATE.cliente_id);
+    localStorage.setItem('tc_nome', STATE.nome);
+    ok(msg, lang==='pt'?'Login ok!':'¡Login ok!');
+    setAuthUI();
+  };
+
+  $('#btn-create').onclick = async ()=>{
+    const login = $('#login').value.trim();
+    const senha = $('#senha').value;
+    const nome = prompt(lang==='pt'?'Nome completo:':'Nombre completo:');
+    const email = prompt(lang==='pt'?'Email (chave de recebimento):':'Email (clave de cobro):');
+    const celular = prompt(lang==='pt'?'Celular:':'Celular:');
+    const msg = $('#auth-msg'); hide(msg);
+    if (!nome || !email || !login || !senha) return err(msg, lang==='pt'?'Campos obrigatórios faltando.':'Faltan campos obligatorios.');
+    const r = await apiPost('criarUsuario', { data:{ nome, email, celular, login, senha } }, false);
+    if (!r.ok) return err(msg, r.error || (lang==='pt'?'Erro ao criar usuário.':'Error al crear usuario.'));
+    ok(msg, lang==='pt'?'Usuário criado! Faça login.':'¡Usuario creado! Inicia sesión.');
+  };
+
+  $('#btn-logout').onclick = ()=>{ STATE={ token:null, cliente_id:null, nome:null }; localStorage.removeItem('tc_token'); localStorage.removeItem('tc_cliente'); localStorage.removeItem('tc_nome'); setAuthUI(); };
+
+  document.querySelectorAll('.tab').forEach(tab=>{
+    tab.onclick = ()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.getAttribute('data-tab');
+      ['dashboard','transfer','receive','history'].forEach(id=>{
+        const el = document.getElementById('tab-'+id);
+        if (id===target) show(el); else hide(el);
+      });
+    };
+  });
+
+  async function loadSaldo(){
+    const r = await apiGet('verSaldo', {});
+    if (r.ok) $('#saldo').textContent = r.saldo;
+  }
+  $('#btn-refresh').onclick = loadSaldo;
+
+  $('#btn-transfer').onclick = async ()=>{
+    const para_chave = $('#para_chave').value.trim();
+    const valor = Number($('#valor_transfer').value);
+    const msg = $('#transfer-msg'); hide(msg);
+    if (!para_chave || !(valor>0)) return err(msg, lang==='pt'?'Informe chave e valor > 0.':'Indique clave e importe > 0.');
+    const r = await apiPost('transferir', { para_chave, valor });
+    if (!r.ok) return err(msg, r.error || (lang==='pt'?'Erro na transferência.':'Error en la transferencia.'));
+    ok(msg, (lang==='pt'?'Transferência ok! tx_id: ':'¡Transferencia ok! tx_id: ') + r.tx_id);
+    loadSaldo();
+  };
+
+  $('#btn-gen-qr').onclick = async ()=>{
+    const valor = $('#valor_qr').value ? Number($('#valor_qr').value) : null;
+    const msg = $('#receive-msg'); hide(msg);
+    const r = await apiPost('gerarQR', { valor });
+    if (!r.ok) return err(msg, r.error || (lang==='pt'?'Erro ao gerar QR.':'Error al generar QR.'));
+    $('#qr-img').src = r.qr_url;
+    ok(msg, lang==='pt'?'QR gerado.':'QR generado.');
+  };
+
+  let qrOpen = false;
+  $('#btn-open-qr').onclick = ()=>{
+    if (qrOpen) return;
+    const el = document.getElementById('qr-reader');
+    show(el); show($('#qr-result'));
+    const html5QrCode = new Html5Qrcode("qr-reader");
+    html5QrCode.start(
+      { facingMode:"environment" },
+      { fps:10, qrbox:200 },
+      async (decodedText)=>{
+        $('#qr-result').textContent = decodedText;
+        try{
+          const r = await apiPost('lerQR', { qr_payload_json: decodedText });
+          if (!r.ok) err($('#transfer-msg'), r.error || (lang==='pt'?'Erro ao processar QR.':'Error al procesar QR.'));
+          else { ok($('#transfer-msg'), lang==='pt'?'Pagamento via QR concluído!':'¡Pago por QR concluido!'); loadSaldo(); }
+        }catch(e){ err($('#transfer-msg'), String(e)); }
+        finally{ html5QrCode.stop(); hide(el); qrOpen=false; }
+      },
+      ()=>{}
+    ).then(()=>{ qrOpen=true; }).catch(err2=>{ err($('#transfer-msg'), (lang==='pt'?'Não foi possível abrir a câmera: ':'No se pudo abrir la cámara: ')+err2); });
+  };
+
+  $('#btn-load-history').onclick = async ()=>{
+    const page = Number($('#hist-page').value||1);
+    const pageSize = Number($('#hist-size').value||10);
+    const r = await apiGet('listarTransacoes', { page, pageSize });
+    const table = $('#hist-table'), tbody = table.querySelector('tbody');
+    tbody.innerHTML = '';
+    if (r.ok && r.items && r.items.length){
+      r.items.forEach(item=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${item.tx_id}</td><td>${item.timestamp}</td><td>${item.de_cliente_id}</td><td>${item.para_cliente_id}</td><td>${item.tipo}</td><td>${item.descricao}</td><td>${item.valor_TC$}</td><td>${item.status}</td>`;
+        tbody.appendChild(tr);
+      });
+      show(table); hide($('#hist-msg'));
+    } else { hide(table); err($('#hist-msg'), lang==='pt'?'Sem itens.':'Sin ítems.'); }
+  };
+
+  setAuthUI();
+  </script>
+</body>
+</html>
