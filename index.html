@@ -4,6 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Taxi Coin (TC$) — Banco Fictício</title>
+  <link rel="icon" href="./favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -25,14 +26,14 @@
     .tabs{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
     .tab{padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#0b1020;cursor:pointer}
     .tab.active{background:linear-gradient(180deg,#1f2937,#0b1020)}
-    .flex{display:flex;gap:8px;align-items:center}
+    .flex{display:flex;gap:12px;align-items:center}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand img{height:48px;border-radius:8px}
     .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-size:12px;color:var(--muted)}
     .right{margin-left:auto}
     .hidden{display:none}
     table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
     th,td{border-bottom:1px dashed rgba(255,255,255,.14);padding:8px;text-align:left}
-    .brand{display:flex;align-items:center;gap:10px}
-    .brand img{height:36px;border-radius:6px}
     .err{color:#fff;background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);padding:8px 10px;border-radius:10px;margin-top:10px}
     .ok{color:#022c22;background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);padding:8px 10px;border-radius:10px;margin-top:10px}
   </style>
@@ -46,10 +47,12 @@
   <div class="wrap">
     <div class="card">
       <div class="brand">
+        <img src="./logo.png" alt="Taxi Calafate logo"/>
         <h1>Taxi Coin (TC$)</h1>
       </div>
       <div class="muted" data-i="subtitle">Banco digital fictício com saldo e transferências</div>
 
+      <!-- LOGIN (sem criar conta) -->
       <div id="auth-view" class="mt2">
         <div class="row">
           <div>
@@ -63,7 +66,7 @@
         </div>
         <div class="row mt">
           <button id="btn-login" data-i="btnLogin">Entrar</button>
-          <button id="btn-create" class="secondary" data-i="btnCreate">Criar conta</button>
+          <!-- Botão 'Criar conta' removido -->
         </div>
         <div id="auth-msg" class="hidden"></div>
       </div>
@@ -163,12 +166,12 @@
   const API_BASE = "https://script.google.com/macros/s/AKfycbzDX5sbPXjMvDlj77uTD4oMxEQ_J1fNmY8-5owRw63hacd7IvOhyD8mPr1shp8c8UUy1g/exec";
 
   const I18N = {
-    pt: { subtitle:"Banco digital fictício com saldo e transferências", login:"Login", password:"Senha", btnLogin:"Entrar", btnCreate:"Criar conta",
+    pt: { subtitle:"Banco digital fictício com saldo e transferências", login:"Login", password:"Senha", btnLogin:"Entrar",
       balance:"Saldo", tabDashboard:"Painel", tabTransfer:"Transferir ao usuario", tabReceive:"Receber (QR)", tabHistory:"Transações",
       btnRefresh:"Atualizar saldo", btnLogout:"Sair", toKey:"Enviar para (chave)", amount:"Valor (TC$)", btnDoTransfer:"Transferir ao usuario",
       btnScanQR:"Ler QR", receiveAmount:"Valor opcional (TC$)", qrPreview:"Prévia do QR", btnGenQR:"Gerar QR de recebimento",
       page:"Página", pageSize:"Itens por página", btnLoadHistory:"Carregar", date:"Data", type:"Tipo", desc:"Descrição", value:"Valor", status:"Status" },
-    es: { subtitle:"Banco digital ficticio con saldo y transferencias", login:"Usuario", password:"Contraseña", btnLogin:"Ingresar", btnCreate:"Crear cuenta",
+    es: { subtitle:"Banco digital ficticio con saldo y transferencias", login:"Usuario", password:"Contraseña", btnLogin:"Ingresar",
       balance:"Saldo", tabDashboard:"Panel", tabTransfer:"Transferir al usuario", tabReceive:"Recibir (QR)", tabHistory:"Transacciones",
       btnRefresh:"Actualizar saldo", btnLogout:"Salir", toKey:"Enviar a (clave)", amount:"Importe (TC$)", btnDoTransfer:"Transferir al usuario",
       btnScanQR:"Leer QR", receiveAmount:"Importe opcional (TC$)", qrPreview:"Vista previa del QR", btnGenQR:"Generar QR de cobro",
@@ -187,13 +190,14 @@
   const ok = (el,msg)=>{ el.className='ok'; el.textContent=msg; show(el); };
   const err= (el,msg)=>{ el.className='err'; el.textContent=msg; show(el); };
 
+  // POST em x-www-form-urlencoded para evitar preflight/OPTIONS
   async function apiPost(action, body={}, auth=true){
     const payload = { ...body, action };
     if (auth && STATE.token) payload.token = STATE.token;
     const res = await fetch(API_BASE + '?action='+encodeURIComponent(action), {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body: new URLSearchParams(payload)
     });
     return res.json();
   }
@@ -212,7 +216,7 @@
     }else{ show($('#auth-view')); hide($('#app-view')); }
   }
 
-  $('#btn-login').onclick = async ()=>{
+  document.getElementById('btn-login').onclick = async ()=>{
     const login = $('#login').value.trim();
     const senha = $('#senha').value;
     const msg = $('#auth-msg');
@@ -227,21 +231,6 @@
     ok(msg, lang==='pt'?'Login ok!':'¡Login ok!');
     setAuthUI();
   };
-
-  $('#btn-create').onclick = async ()=>{
-    const login = $('#login').value.trim();
-    const senha = $('#senha').value;
-    const nome = prompt(lang==='pt'?'Nome completo:':'Nombre completo:');
-    const email = prompt(lang==='pt'?'Email (chave de recebimento):':'Email (clave de cobro):');
-    const celular = prompt(lang==='pt'?'Celular:':'Celular:');
-    const msg = $('#auth-msg'); hide(msg);
-    if (!nome || !email || !login || !senha) return err(msg, lang==='pt'?'Campos obrigatórios faltando.':'Faltan campos obligatorios.');
-    const r = await apiPost('criarUsuario', { data:{ nome, email, celular, login, senha } }, false);
-    if (!r.ok) return err(msg, r.error || (lang==='pt'?'Erro ao criar usuário.':'Error al crear usuario.'));
-    ok(msg, lang==='pt'?'Usuário criado! Faça login.':'¡Usuario creado! Inicia sesión.');
-  };
-
-  $('#btn-logout').onclick = ()=>{ STATE={ token:null, cliente_id:null, nome:null }; localStorage.removeItem('tc_token'); localStorage.removeItem('tc_cliente'); localStorage.removeItem('tc_nome'); setAuthUI(); };
 
   document.querySelectorAll('.tab').forEach(tab=>{
     tab.onclick = ()=>{
@@ -259,9 +248,10 @@
     const r = await apiGet('verSaldo', {});
     if (r.ok) $('#saldo').textContent = r.saldo;
   }
-  $('#btn-refresh').onclick = loadSaldo;
+  document.getElementById('btn-refresh').onclick = loadSaldo;
+  document.getElementById('btn-logout').onclick = ()=>{ STATE={ token:null, cliente_id:null, nome:null }; localStorage.removeItem('tc_token'); localStorage.removeItem('tc_cliente'); localStorage.removeItem('tc_nome'); setAuthUI(); };
 
-  $('#btn-transfer').onclick = async ()=>{
+  document.getElementById('btn-transfer').onclick = async ()=>{
     const para_chave = $('#para_chave').value.trim();
     const valor = Number($('#valor_transfer').value);
     const msg = $('#transfer-msg'); hide(msg);
@@ -272,7 +262,7 @@
     loadSaldo();
   };
 
-  $('#btn-gen-qr').onclick = async ()=>{
+  document.getElementById('btn-gen-qr').onclick = async ()=>{
     const valor = $('#valor_qr').value ? Number($('#valor_qr').value) : null;
     const msg = $('#receive-msg'); hide(msg);
     const r = await apiPost('gerarQR', { valor });
@@ -282,7 +272,7 @@
   };
 
   let qrOpen = false;
-  $('#btn-open-qr').onclick = ()=>{
+  document.getElementById('btn-open-qr').onclick = ()=>{
     if (qrOpen) return;
     const el = document.getElementById('qr-reader');
     show(el); show($('#qr-result'));
@@ -303,7 +293,7 @@
     ).then(()=>{ qrOpen=true; }).catch(err2=>{ err($('#transfer-msg'), (lang==='pt'?'Não foi possível abrir a câmera: ':'No se pudo abrir la cámara: ')+err2); });
   };
 
-  $('#btn-load-history').onclick = async ()=>{
+  document.getElementById('btn-load-history').onclick = async ()=>{
     const page = Number($('#hist-page').value||1);
     const pageSize = Number($('#hist-size').value||10);
     const r = await apiGet('listarTransacoes', { page, pageSize });
